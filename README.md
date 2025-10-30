@@ -1,56 +1,17 @@
-# Event Guest Manager - Developer Test
+# Event Guest Manager 
 
-Welcome! 👋
+Event Guest Manager is a web application designed to help event organizers manage their guest lists efficiently. With features like RSVP tracking, guest information management, and event reminders, this tool simplifies the process of organizing events.
 
-This is a take-home coding test where you'll work with a full-stack event management application.
+For setup instructions, please refer to the [SETUP.md](SETUP.md) file.
 
-## 📋 What You'll Build
+##  Key features: 
+  - Database migration to add events table, event_id in the guests table, and notes, plus_ones, dietary_restrictions fields.
+  - Made sure to handle the case where the existing users are associated with a default "Legacy Event" which is a placeholder for existing data.
+  - ```cmd``` folder in the ```backend``` contains migration scripts to implement the database changes using the `golang-migrate` tool.
+  - It also contains scripts to check whether the database has become dirty and if so it tries to return to a clean state by rolling back to the last successful migration.
+  - ```migrations``` folder contains the actual migration files, it contains both ```.up.sql``` and ```.down.sql``` files for each migration step.
+  - Frontend Svelte page to display a list of events fetched from the backend.
+  - User can select an event and fill out the RSVP form with their details, including name, email, phone number, RSVP status, plus ones, dietary restrictions, and notes.
 
-Your task is to **design and implement a public RSVP page** where guests can register for an event.
 
-You'll be working with:
-- **Backend**: Go + PostgreSQL
-- **Frontend**: Svelte 5 + TypeScript + TailwindCSS
-- **Database**: PostgreSQL (Docker)
-
-## NOTE: Feel free to use any tools at your disposal  but we highly value understanding of the code which is written 
-
-## 🚀 Getting Started
-
-### Step 1: Setup
-Read **[SETUP.md](SETUP.md)** for installation and setup instructions.
-
-### Step 2: Understand the Task  
-Read **[TASK.md](TASK.md)** for detailed requirements and what to build.
-
-### Step 3: Start Coding
-Build the RSVP page, fix any issues you encounter, and document your work.
-
-### Step 4: Submit
-Complete **[SUBMISSION.md](SUBMISSION.md)** with your findings and submit your code.
-
-## ⏱️ Time Estimate
-
-**24-48 hours** depending on your experience level.
-
-## 🎯 What We're Looking For
-
-- **Working code** - Does it function as specified?
-- **Code quality** - Clean, readable, and maintainable
-- **Problem-solving** - Can you identify and fix issues?
-- **Design skills** - Is the RSVP page well-designed and user-friendly?
-- **Documentation** - Clear explanation of your work
-
-## 💡 Important Note
-
-The existing codebase is functional but may have some issues. Part of this test is discovering and fixing problems as you go - just like in real-world development!
-
-## ❓ Questions?
-
-If you get stuck or need clarification, don't hesitate to reach out. We're here to help!
-
----
-
-**Ready?** Start with [SETUP.md](SETUP.md) to get your environment running.
-
-Good luck! 🚀
+Detailed information about the implementation and bugs fixed can be found in the [SUBMISSION.md](SUBMISSION.md) file.
