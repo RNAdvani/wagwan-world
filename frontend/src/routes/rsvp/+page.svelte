@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { getEvents, createGuest, type Event as EventType } from '$lib/api';
+  import { enhance } from '$app/forms';
 
-	let events: EventType[] = [];
-	let loading = true;
+	export let data: import('./$types').PageData;
+		
+	import {type Event as EventType } from '$lib/api';
+
+
+	let events: EventType[] = data.events || [];
 	let error: string | null = null;
 
 	let formName = '';
@@ -14,77 +17,10 @@
 	let formNotes = '';
 	let formPlusOnes: 0 | 1 = 0;
 	let formDietaryRestrictions = '';
+	let submitting = false;
 
 	let formError: string | null = null;
-	let formSubmitting = false;
 	let formSuccess = false;
-
-	onMount(async () => {
-		try {
-			events = await getEvents();
-		} catch (err) {
-			error = 'Failed to load events';
-		} finally {
-			loading = false;
-		}
-	});
-
-	async function handleSubmit(e: Event) {
-		e.preventDefault();
-		formError = null;
-		formSuccess = false;
-
-		if (!formEventId) {
-			formError = 'Please select an event';
-			return;
-		}
-		if (!formName.trim()) {
-			formError = 'Name is required';
-			return;
-		}
-		if (!formEmail.trim()) {
-			formError = 'Email is required';
-			return;
-		}
-		if (!/\S+@\S+\.\S+/.test(formEmail)) {
-			formError = 'Invalid email format';
-			return;
-		}
-		if (!formPhone.trim()) {
-			formError = 'Phone is required';
-			return;
-		}
-
-		try {
-			formSubmitting = true;
-
-			await createGuest({
-				name: formName,
-				email: formEmail,
-				phone: formPhone,
-				status: formStatus,
-				event_id: formEventId,
-				notes: formNotes,
-				plus_ones: formPlusOnes,
-				dietary_restrictions: formDietaryRestrictions
-			});
-
-			formName = '';
-			formEmail = '';
-			formPhone = '';
-			formStatus = 'pending';
-			formEventId = null;
-			formNotes = '';
-			formPlusOnes = 0;
-			formDietaryRestrictions = '';
-			formSuccess = true;
-		} catch (err) {
-			formError =
-				err instanceof Error ? err.message : 'Failed to submit RSVP';
-		} finally {
-			formSubmitting = false;
-		}
-	}
 
 	function formatDate(date: string) {
 		return new Date(date).toLocaleString('en-IN', {
@@ -105,13 +41,7 @@
 		</div>
 
 
-		{#if loading}
-			<div class="flex justify-center items-center h-64">
-				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-			</div>
-		{:else if error}
-			<p class="text-center text-red-500 text-lg">{error}</p>
-		{:else}
+		
 			<div class="grid lg:grid-cols-3 gap-8">
 				<!-- Events Sidebar - 1/3 width -->
 				<div class="lg:col-span-1">
@@ -153,13 +83,14 @@
 							Your Details
 						</h2>
 						
-						<form class="space-y-5" on:submit|preventDefault={handleSubmit}>
+						<form method="post" class="space-y-5" >
 							<div class="grid md:grid-cols-2 gap-5">
 								<!-- Name -->
 								<div>
 									<p class="text-sm font-bold text-gray-700 mb-2">Full Name</p>
 									<input
 										type="text"
+										name="name"
 										bind:value={formName}
 										class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all"
 										placeholder="John Doe" />
@@ -170,6 +101,7 @@
 									<p class="text-sm font-bold text-gray-700 mb-2">Email Address</p>
 									<input
 										type="email"
+										name="email"
 										bind:value={formEmail}
 										class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all"
 										placeholder="john@example.com" />
@@ -180,6 +112,7 @@
 									<p class="text-sm font-bold text-gray-700 mb-2">Phone Number</p>
 									<input
 										type="tel"
+										name="phone"
 										bind:value={formPhone}
 										class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all"
 										placeholder="+91 98765 43210" />
@@ -190,6 +123,7 @@
 									<p class="text-sm font-bold text-gray-700 mb-2">Bringing a Guest?</p>
 									<select
 										bind:value={formPlusOnes}
+										name="plus_ones"
 										class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all cursor-pointer">
 										<option value={0}>Just me</option>
 										<option value={1}>Me + 1</option>
@@ -203,6 +137,7 @@
 								<input
 									type="text"
 									bind:value={formDietaryRestrictions}
+									name="dietary_restrictions"
 									class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all"
 									placeholder="Vegetarian, Vegan, None, etc." />
 							</div>
@@ -216,7 +151,7 @@
 									class="w-full border-2 border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-600 bg-white transition-all resize-none"
 									placeholder="Any special requests or messages for us?"></textarea>
 							</div>
-
+							<input type="hidden" name="event_id" value={formEventId ?? ''} />
 							<!-- RSVP Status -->
 							<div>
 								<p class="text-sm font-bold text-gray-700 mb-3">Will you be attending?</p>
@@ -238,7 +173,7 @@
 										tabindex="0"
 										class="flex items-center gap-2 px-5 py-3 rounded-xl border-2 cursor-pointer transition-all
 											{formStatus === 'pending' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-300 bg-white hover:border-yellow-400'}">
-										<input class="cursor-pointer w-4 h-4 pointer-events-none" type="radio" bind:group={formStatus} value="pending" />
+										<input 	name="status" class="cursor-pointer w-4 h-4 pointer-events-none" type="radio" bind:group={formStatus} value="pending" />
 										<span class="font-medium">Maybe</span>
 									</div>
 									<div 
@@ -268,22 +203,14 @@
 							<!-- Submit Button -->
 							<button
 								type="submit"
-								class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-								disabled={formSubmitting}>
-								{#if formSubmitting}
-									<span class="flex items-center justify-center gap-2">
-										<span class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-										<span>Submitting...</span>
-									</span>
-								{:else}
-									<span class="text-lg">Submit RSVP</span>
-								{/if}
+								disabled={submitting || formEventId === null}
+								class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+								Submit RSVP
 							</button>
 						</form>
 					</div>
 				</div>
 			</div>
-		{/if}
 	</div>
 </div>
 
